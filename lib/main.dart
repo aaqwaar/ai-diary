@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+
 
 // Globálny kľúč pre zobrazovanie snackbarov odkiaľkoľvek v appke
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
@@ -14,6 +16,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await initializeDateFormatting('sk');
   runApp(const MyApp());
 }
 
