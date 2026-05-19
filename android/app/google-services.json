@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "603229566932",
+    "project_id": "ai-diary-mobilne",
+    "storage_bucket": "ai-diary-mobilne.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:603229566932:android:155cb699536479b36a0841",
+        "android_client_info": {
+          "package_name": "com.example.ai_diary"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGwoeQAI31CMemuPnXzyRBxVoaTnsy5J8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
