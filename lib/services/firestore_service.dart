@@ -38,4 +38,36 @@ class FirestoreService {
   Future<void> updateTags(String entryId, List<String> tags) async {
     await _userEntries().doc(entryId).update({'tags': tags});
   }
+  // Helper: kolekcia chat správ aktuálneho užívateľa
+CollectionReference<Map<String, dynamic>> _userChatMessages() {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId == null) {
+    throw Exception('Užívateľ nie je prihlásený');
+  }
+  return _db.collection('users').doc(userId).collection('chat_messages');
+}
+
+// Uloží chat správu
+Future<void> saveChatMessage(String text, bool isUser) async {
+  await _userChatMessages().add({
+    'text': text,
+    'isUser': isUser,
+    'timestamp': FieldValue.serverTimestamp(),
+  });
+}
+
+// Načíta všetky chat správy (zoradené od najstaršej)
+Future<List<Map<String, dynamic>>> getChatMessages() async {
+  final snapshot =
+      await _userChatMessages().orderBy('timestamp', descending: false).get();
+  return snapshot.docs.map((doc) => doc.data()).toList();
+}
+
+// Vymaže celú chat históriu
+Future<void> clearChatMessages() async {
+  final snapshot = await _userChatMessages().get();
+  for (final doc in snapshot.docs) {
+    await doc.reference.delete();
+  }
+}
 }
