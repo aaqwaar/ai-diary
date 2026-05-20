@@ -4,15 +4,17 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
-import 'screens/login_screen.dart';
 import 'services/firestore_service.dart';
-import 'screens/set_username_screen.dart';
+import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/set_username_screen.dart';
 
-
-// Globálny kľúč pre zobrazovanie snackbarov odkiaľkoľvek v appke
+// Globálny kľúč pre snackbary
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
+
+// Globálny stav tmavej témy (prepínateľný z home screenu)
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,20 +31,35 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'AI Denník',
-      debugShowCheckedModeBanner: false,
-      scaffoldMessengerKey: scaffoldMessengerKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const AuthWrapper(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (context, themeMode, _) {
+        return MaterialApp(
+          title: 'AI Denník',
+          debugShowCheckedModeBanner: false,
+          scaffoldMessengerKey: scaffoldMessengerKey,
+          themeMode: themeMode,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.deepPurple,
+              brightness: Brightness.light,
+            ),
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.deepPurple,
+              brightness: Brightness.dark,
+            ),
+            useMaterial3: true,
+          ),
+          home: const AuthWrapper(),
+        );
+      },
     );
   }
 }
 
-// Rozhoduje, či zobraziť login alebo home na základe stavu prihlásenia
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
@@ -57,12 +74,10 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // Užívateľ nie je prihlásený → Login
         if (!authSnapshot.hasData) {
           return const LoginScreen();
         }
 
-        // Užívateľ je prihlásený, skontroluj či má username
         return StreamBuilder<String?>(
           stream: FirestoreService().usernameStream(),
           builder: (context, usernameSnapshot) {
@@ -74,12 +89,10 @@ class AuthWrapper extends StatelessWidget {
 
             final username = usernameSnapshot.data;
 
-            // Nemá username → SetUsernameScreen
             if (username == null || username.isEmpty) {
               return const SetUsernameScreen();
             }
 
-            // Má všetko → HomeScreen
             return const HomeScreen();
           },
         );

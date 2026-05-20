@@ -105,4 +105,40 @@ Stream<String?> usernameStream() {
     return doc.data()?['username'] as String?;
   });
 }
+// Vypočíta streak (počet dní po sebe so zápiskami)
+Future<int> calculateStreak() async {
+  final entries = await entriesStream().first;
+  if (entries.isEmpty) return 0;
+
+  // Získaj unikátne dni so zápiskami (deduplicácia)
+  final daysWithEntries = entries
+      .map((e) => DateTime(e.date.year, e.date.month, e.date.day))
+      .toSet()
+      .toList()
+    ..sort((a, b) => b.compareTo(a)); // od najnovšieho
+
+  final today = DateTime.now();
+  final todayKey = DateTime(today.year, today.month, today.day);
+  final yesterdayKey = todayKey.subtract(const Duration(days: 1));
+
+  // Streak neexistuje ak posledný zápisok bol predvčerom alebo skôr
+  if (daysWithEntries.first != todayKey &&
+      daysWithEntries.first != yesterdayKey) {
+    return 0;
+  }
+
+  // Spočítaj po sebe idúce dni
+  int streak = 1;
+  for (int i = 0; i < daysWithEntries.length - 1; i++) {
+    final diff =
+        daysWithEntries[i].difference(daysWithEntries[i + 1]).inDays;
+    if (diff == 1) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
 }
