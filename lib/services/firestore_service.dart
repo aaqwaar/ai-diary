@@ -70,4 +70,39 @@ Future<void> clearChatMessages() async {
     await doc.reference.delete();
   }
 }
+// User profile (username, atď.)
+DocumentReference<Map<String, dynamic>> _userDoc() {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId == null) {
+    throw Exception('Užívateľ nie je prihlásený');
+  }
+  return _db.collection('users').doc(userId);
+}
+
+// Uloží username (vytvorí alebo aktualizuje user dokument)
+Future<void> setUsername(String username) async {
+  await _userDoc().set(
+    {'username': username},
+    SetOptions(merge: true),
+  );
+}
+
+// Načíta username (vráti null ak ešte nie je nastavený)
+Future<String?> getUsername() async {
+  try {
+    final doc = await _userDoc().get();
+    if (!doc.exists) return null;
+    return doc.data()?['username'] as String?;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Stream pre username (auto-update UI keď sa zmení)
+Stream<String?> usernameStream() {
+  return _userDoc().snapshots().map((doc) {
+    if (!doc.exists) return null;
+    return doc.data()?['username'] as String?;
+  });
+}
 }

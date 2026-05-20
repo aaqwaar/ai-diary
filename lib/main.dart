@@ -5,6 +5,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
+import 'services/firestore_service.dart';
+import 'screens/set_username_screen.dart';
 import 'screens/home_screen.dart';
 
 
@@ -48,19 +50,40 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        if (snapshot.hasData) {
-          return const HomeScreen();
+        // Užívateľ nie je prihlásený → Login
+        if (!authSnapshot.hasData) {
+          return const LoginScreen();
         }
 
-        return const LoginScreen();
+        // Užívateľ je prihlásený, skontroluj či má username
+        return StreamBuilder<String?>(
+          stream: FirestoreService().usernameStream(),
+          builder: (context, usernameSnapshot) {
+            if (usernameSnapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final username = usernameSnapshot.data;
+
+            // Nemá username → SetUsernameScreen
+            if (username == null || username.isEmpty) {
+              return const SetUsernameScreen();
+            }
+
+            // Má všetko → HomeScreen
+            return const HomeScreen();
+          },
+        );
       },
     );
   }
-} 
+}

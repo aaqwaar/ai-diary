@@ -128,23 +128,36 @@ class _HomeTabState extends State<_HomeTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Privítacia karta
-          Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Vitaj späť! 👋',
-                      style: Theme.of(context).textTheme.headlineSmall),
-                  const SizedBox(height: 8),
-                  Text(user?.email ?? '',
-                      style: TextStyle(color: Colors.grey.shade600)),
-                ],
+          // Privítacia karta s username
+StreamBuilder<String?>(
+  stream: _firestoreService.usernameStream(),
+  builder: (context, snapshot) {
+    final username = snapshot.data ?? 'Priateľ';
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Vitaj späť, $username! 👋',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              FirebaseAuth.instance.currentUser?.email ?? '',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 12,
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  },
+),
 
           // AI denná otázka (skutočná, z Gemini)
           // AI denná otázka - manuálne generovanie
